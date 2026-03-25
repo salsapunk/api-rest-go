@@ -56,6 +56,7 @@ func main() {
 
 	// define as rotas e as funções do handler que serão chamadas por elas
 	mux.HandleFunc("/ping", TaskHand.HealthHandler)
+	mux.HandleFunc("/GET", TaskHand.ListAllTasks)
 
 	// define a "rota principal do multiplexer"
 	http.Handle("/", mux)
