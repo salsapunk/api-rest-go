@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"log"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/salsapunk/api-rest-go/internal/domain"
@@ -23,11 +24,11 @@ func (tR *TaskRepository) ListAllTasks(ctx context.Context) ([]domain.Task, erro
 		return []domain.Task{}, err
 	}
 
+	var tasks []domain.Task
 	var task domain.Task
-	tasks := []domain.Task{}
 
 	for rows.Next() {
-		rows.Scan(
+		err = rows.Scan(
 			&task.Id,
 			&task.Title,
 			&task.Description,
@@ -35,8 +36,29 @@ func (tR *TaskRepository) ListAllTasks(ctx context.Context) ([]domain.Task, erro
 			&task.Created_At,
 			&task.Created_By,
 		)
+
+		if err != nil {
+			return []domain.Task{}, err
+		}
+
 		tasks = append(tasks, task)
 	}
 
-	return []domain.Task{}, nil
+	rows.Close()
+
+	return tasks, nil
+}
+
+func (tR *TaskRepository) CreateTask(ctx context.Context, task *domain.Task) (int, error) {
+	row := tR.pool.QueryRow(ctx, domain.CREATE, &task.Title, &task.Description)
+
+	var id int
+
+	err := row.Scan(&id)
+	if err != nil {
+		return 0, err
+	}
+	log.Printf("row returned id %d", id)
+
+	return id, nil
 }
