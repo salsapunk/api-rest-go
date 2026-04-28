@@ -19,8 +19,8 @@ func NewTaskService(TaskRepo *repository.TaskRepository) *TaskService {
 	}
 }
 
-func (tR *TaskService) ListAllTasks(ctx context.Context) ([]domain.Task, error) {
-	tasks, err := tR.repository.ListAllTasks(ctx)
+func (tS *TaskService) ListAllTasks(ctx context.Context) ([]domain.Task, error) {
+	tasks, err := tS.repository.ListAllTasks(ctx)
 	if err != nil {
 		return []domain.Task{}, err
 	}
@@ -28,7 +28,16 @@ func (tR *TaskService) ListAllTasks(ctx context.Context) ([]domain.Task, error) 
 	return tasks, nil
 }
 
-func (tR *TaskService) CreateTask(ctx context.Context, task *domain.Task) (int, error) {
+func (tS *TaskService) ListById(ctx context.Context, id int) (domain.Task, error) {
+	task, err := tS.repository.ListById(ctx, id)
+	if err != nil {
+		return domain.Task{}, err
+	}
+
+	return task, nil
+}
+
+func (tS *TaskService) CreateTask(ctx context.Context, task *domain.Task) (int, error) {
 	task.Created_At = time.Now()
 
 	validate := validator.New()
@@ -37,10 +46,28 @@ func (tR *TaskService) CreateTask(ctx context.Context, task *domain.Task) (int, 
 		return 0, err
 	}
 
-	id, err := tR.repository.CreateTask(ctx, task)
+	id, err := tS.repository.CreateTask(ctx, task)
 	if err != nil {
 		return 0, err
 	}
 
 	return id, nil
+}
+
+func (tS *TaskService) UpdateTask(ctx context.Context, id int) error {
+	err := tS.repository.UpdateTask(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (tS *TaskService) DeleteTask(ctx context.Context, id int) error {
+	err := tS.repository.DeleteTask(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

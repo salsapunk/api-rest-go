@@ -37,7 +37,10 @@ func main() {
 
 	mux.HandleFunc("/ping", TaskHand.HealthHandler)
 	mux.HandleFunc("/GET", TaskHand.ListAllTasks)
+	mux.HandleFunc("/GET/id/{id}", TaskHand.ListById)
 	mux.HandleFunc("/POST", TaskHand.CreateTask)
+	mux.HandleFunc("/UPDATE/id/{id}", TaskHand.UpdateTask)
+	mux.HandleFunc("/DELETE/id/{id}", TaskHand.DeleteTask)
 
 	http.Handle("/", mux)
 
