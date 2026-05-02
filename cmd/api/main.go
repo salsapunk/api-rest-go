@@ -36,14 +36,14 @@ func main() {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/ping", TaskHand.HealthHandler)
-	mux.HandleFunc("/GET", TaskHand.ListAllTasks)
-	mux.HandleFunc("/GET/id/{id}", TaskHand.ListById)
-	mux.HandleFunc("/POST", TaskHand.CreateTask)
-	mux.HandleFunc("/UPDATE/id/{id}", TaskHand.UpdateTask)
-	mux.HandleFunc("/DELETE/id/{id}", TaskHand.DeleteTask)
+	mux.HandleFunc("GET /tasks", TaskHand.ListAllTasks)
+	mux.HandleFunc("GET /tasks/{id}", TaskHand.ListById)
+	mux.HandleFunc("POST /tasks", TaskHand.CreateTask)
+	mux.HandleFunc("UPDATE /tasks/{id}", TaskHand.UpdateTask)
+	mux.HandleFunc("DELETE /tasks/{id}", TaskHand.DeleteTask)
 
 	http.Handle("/", mux)
 
 	log.Println("Starting API in port 8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8080", mux))
 }

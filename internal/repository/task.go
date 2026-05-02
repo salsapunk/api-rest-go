@@ -20,7 +20,7 @@ func NewTaskRepository(pool *pgxpool.Pool) *TaskRepository {
 func (tR *TaskRepository) ListAllTasks(ctx context.Context) ([]domain.Task, error) {
 	rows, err := tR.pool.Query(ctx, domain.LISTALL)
 	if err != nil {
-		return []domain.Task{}, err
+		return nil, err
 	}
 
 	var tasks []domain.Task
@@ -37,7 +37,7 @@ func (tR *TaskRepository) ListAllTasks(ctx context.Context) ([]domain.Task, erro
 		)
 
 		if err != nil {
-			return []domain.Task{}, err
+			return nil, err
 		}
 
 		tasks = append(tasks, task)
@@ -82,7 +82,7 @@ func (tR *TaskRepository) CreateTask(ctx context.Context, task *domain.Task) (in
 }
 
 func (tR *TaskRepository) UpdateTask(ctx context.Context, id int) error {
-	_, err := tR.pool.Exec(ctx, domain.UPTADE, id)
+	_, err := tR.pool.Exec(ctx, domain.UPDATE, id)
 	if err != nil {
 		return err
 	}

@@ -22,6 +22,6 @@ const (
 	LISTALL  = "SELECT id, title, description, done, created_at, created_by FROM tasks;"
 	LISTBYID = "SELECT id, title, description, done, created_at, created_by FROM tasks WHERE id = $1;"
 	CREATE   = "INSERT INTO tasks(title, description, created_by) VALUES($1, $2, 'salsa') RETURNING id;"
-	UPTADE   = "UPDATE tasks SET done = true WHERE id = $1;"
+	UPDATE   = "UPDATE tasks SET done = true WHERE id = $1;"
 	DELETE   = "DELETE FROM tasks WHERE id = $1;"
 )

@@ -11,18 +11,20 @@ import (
 
 type TaskService struct {
 	repository *repository.TaskRepository
+	validate   validator.Validate
 }
 
 func NewTaskService(TaskRepo *repository.TaskRepository) *TaskService {
 	return &TaskService{
 		repository: TaskRepo,
+		validate:   *validator.New(),
 	}
 }
 
 func (tS *TaskService) ListAllTasks(ctx context.Context) ([]domain.Task, error) {
 	tasks, err := tS.repository.ListAllTasks(ctx)
 	if err != nil {
-		return []domain.Task{}, err
+		return nil, err
 	}
 
 	return tasks, nil
@@ -40,8 +42,7 @@ func (tS *TaskService) ListById(ctx context.Context, id int) (domain.Task, error
 func (tS *TaskService) CreateTask(ctx context.Context, task *domain.Task) (int, error) {
 	task.Created_At = time.Now()
 
-	validate := validator.New()
-	err := validate.Struct(task)
+	err := tS.validate.Struct(task)
 	if err != nil {
 		return 0, err
 	}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -31,13 +30,13 @@ func (tH *TaskHandler) HealthHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (tH *TaskHandler) ListAllTasks(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
 
 	tasks, err := tH.service.ListAllTasks(ctx)
 
 	if err != nil {
-		log.Printf("Error: %v", err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
@@ -46,7 +45,7 @@ func (tH *TaskHandler) ListAllTasks(w http.ResponseWriter, r *http.Request) {
 }
 
 func (tH *TaskHandler) ListById(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
 
 	id := r.PathValue("id")
@@ -59,7 +58,7 @@ func (tH *TaskHandler) ListById(w http.ResponseWriter, r *http.Request) {
 	task, err := tH.service.ListById(ctx, taskid)
 
 	if err != nil {
-		log.Printf("Error: %v", err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
@@ -69,18 +68,22 @@ func (tH *TaskHandler) ListById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (tH *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
 
 	var task *domain.Task
-	json.NewDecoder(r.Body).Decode(&task)
+	err := json.NewDecoder(r.Body).Decode(&task)
+	if err != nil {
+		http.Error(w, "error decoding request body", http.StatusInternalServerError)
+	}
 
 	id, err := tH.service.CreateTask(ctx, task)
 	if err != nil {
-		log.Printf("Error creating new task: %v", err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(domain.Response{
 		Message: fmt.Sprint("Task created with id ", id),
 		Status:  http.StatusCreated,
@@ -88,7 +91,7 @@ func (tH *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 }
 
 func (tH *TaskHandler) UpdateTask(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
 
 	id := r.PathValue("id")
@@ -101,10 +104,11 @@ func (tH *TaskHandler) UpdateTask(w http.ResponseWriter, r *http.Request) {
 
 	// melhorar tratamento de erros
 	if err := tH.service.UpdateTask(ctx, taskid); err != nil {
-		log.Printf("Error updating task: %v", err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(domain.Response{
 		Message: fmt.Sprintf("Task with id %d updated!", taskid),
 		Status:  202,
@@ -113,7 +117,7 @@ func (tH *TaskHandler) UpdateTask(w http.ResponseWriter, r *http.Request) {
 }
 
 func (tH *TaskHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
 
 	strid := r.PathValue("id")
@@ -125,10 +129,11 @@ func (tH *TaskHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
 
 	err = tH.service.DeleteTask(ctx, taskid)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("%v", err), http.StatusBadGateway)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(domain.Response{
 		Message: "Task deleted",
 		Status:  204,
